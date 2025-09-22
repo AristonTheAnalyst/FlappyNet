@@ -1,0 +1,4 @@
+- HTML5 + CSS
+- p5.js (game rendering)
+- TensorFlow.js (AI brain)
+- Pure JavaScript (game logic)
