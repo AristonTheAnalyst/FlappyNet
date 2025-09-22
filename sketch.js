@@ -1,11 +1,18 @@
 //Game variables
-
 let bird;
 let gravity = 0.6;
 let gameStarted = false;
 let pipes = []; 
 let score = 0; 
 let gameOver = false; 
+let birdImg, pipeImg, bgImg;
+
+function preload() {
+    // This runs before setup()
+    birdImg = loadImage('bird.png');
+    pipeImg = loadImage('pipe.png');
+    bgImg = loadImage('background.png');
+}
 
 function setup() {
     createCanvas(800, 600);
@@ -23,7 +30,7 @@ function setup() {
 
     
 function draw() {
-    background(135, 206, 235);
+    image(bgImg, 0, 0, width, height);
     
     if(gameStarted && !gameOver) {
         bird.velocity += gravity;
@@ -37,8 +44,7 @@ function draw() {
     }
     
     // Draw bird
-    fill(255, 255, 0);
-    ellipse(bird.x, bird.y, bird.size);
+    drawBird();
     
     drawPipes();
     
@@ -99,15 +105,38 @@ function updatePipes() {
     }
 }
 
-function drawPipes() {
-    fill(0, 255, 0); // Green pipes
+function drawBird() {
+    push();
+    translate(bird.x, bird.y); 
     
+    // Map velocity to angle
+    let angle = map(bird.velocity, -15, 15, -PI / 5, PI / 4, true); 
+    rotate(angle);
+    
+    imageMode(CENTER);
+
+    // Maintain aspect ratio
+    let aspect = birdImg.width / birdImg.height;
+    let drawHeight = bird.size; 
+    let drawWidth = bird.size * aspect;
+    
+    image(birdImg, 0, 0, drawWidth, drawHeight);
+    
+    pop();
+}
+
+
+function drawPipes() {
     for(let pipe of pipes) {
-        // Top pipe
-        rect(pipe.x, 0, pipe.width, pipe.gapY);
+        // Top pipe (flipped)
+        push();
+        scale(1, -1); // Flip vertically
+        image(pipeImg, pipe.x, -pipe.gapY, pipe.width, pipe.gapY);
+        pop();
         
         // Bottom pipe
-        rect(pipe.x, pipe.gapY + pipe.gapSize, pipe.width, height - 50 - (pipe.gapY + pipe.gapSize));
+        image(pipeImg, pipe.x, pipe.gapY + pipe.gapSize, pipe.width, 
+              height - 50 - (pipe.gapY + pipe.gapSize));
     }
 }
 
