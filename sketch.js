@@ -4,14 +4,18 @@ let gravity = 0.6;
 let gameStarted = false;
 let pipes = []; 
 let score = 0; 
+let highScore = 0;
+let highScoreName = "";
 let gameOver = false; 
 let birdImg, pipeImg, bgImg;
+let nameInput = "";
+let enteringName = false;
 
 function preload() {
     // This runs before setup()
     birdImg = loadImage('bird.png');
     pipeImg = loadImage('pipe.png');
-    bgImg = loadImage('background.png');
+    bgImg = loadImage('background2.png');
 }
 
 function setup() {
@@ -25,14 +29,13 @@ function setup() {
     };
 
     pipes.push(createPipe());
-
 }
 
     
 function draw() {
     image(bgImg, 0, 0, width, height);
     
-    if(gameStarted && !gameOver) {
+    if(gameStarted && !gameOver && !enteringName) {
         bird.velocity += gravity;
         bird.y += bird.velocity;
         updatePipes();
@@ -40,6 +43,11 @@ function draw() {
         // Check for collisions
         if (checkCollisions()) {
             gameOver = true;
+            // Check if it's a new high score
+            if (score > highScore) {
+                enteringName = true;
+                nameInput = "";
+            }
         }
     }
     
@@ -49,16 +57,59 @@ function draw() {
     drawPipes();
     
     // Ground
-    fill(0, 255, 0);
+    fill('#FF8640');
     rect(0, height - 50, width, 50);
     
-    // Show score
+    // Show scores
     fill(255);
-    textSize(32);
-    text('Score: ' + score, 20, 40);
+    textSize(24);
+    text('Score: ' + score, 20, 30);
     
+    // Show high score
+    if (highScore > 0) {
+        if (highScoreName) {
+            text('High Score: ' + highScore + ' (' + highScoreName + ')', 20, 60);
+        } else {
+            text('High Score: ' + highScore, 20, 60);
+        }
+    }
+    
+    // Show name input screen
+    if (enteringName) {
+        // Semi-transparent overlay
+        fill(0, 0, 0, 150);
+        rect(0, 0, width, height);
+        
+        fill(255);
+        textAlign(CENTER);
+        textSize(32);
+        text('NEW HIGH SCORE!', width/2, height/2 - 80);
+        textSize(24);
+        text('Score: ' + score, width/2, height/2 - 40);
+        text('Enter your name:', width/2, height/2);
+        
+        // Show input box
+        fill(255);
+        stroke(0);
+        rect(width/2 - 150, height/2 + 20, 300, 40);
+        
+        fill(0);
+        textSize(20);
+        text(nameInput, width/2, height/2 + 45);
+        
+        // Show cursor
+        if (frameCount % 60 < 30) {
+            text('|', width/2 + textWidth(nameInput)/2 + 5, height/2 + 45);
+        }
+        
+        textSize(16);
+        fill(200);
+        text('Press ENTER to confirm', width/2, height/2 + 80);
+        
+        textAlign(LEFT); // Reset alignment
+    }
     // Show game over message
-    if (gameOver) {
+    else if (gameOver) {
         fill(255);
         textAlign(CENTER);
         textSize(48);
@@ -68,8 +119,6 @@ function draw() {
         textAlign(LEFT); // Reset alignment
     }
 }
-
-
 
 function createPipe() {
     let gapSize = 150;
@@ -125,7 +174,6 @@ function drawBird() {
     pop();
 }
 
-
 function drawPipes() {
     for(let pipe of pipes) {
         // Top pipe (flipped)
@@ -141,15 +189,37 @@ function drawPipes() {
 }
 
 function keyPressed() {
+    // Handle name input
+    if (enteringName) {
+        if (keyCode === ENTER) {
+            // Confirm name entry
+            if (nameInput.trim() === "") {
+                nameInput = "Anonymous";
+            }
+            highScore = score;
+            highScoreName = nameInput.trim();
+            enteringName = false;
+            return;
+        } else if (keyCode === BACKSPACE) {
+            // Remove last character
+            nameInput = nameInput.slice(0, -1);
+            return;
+        } else if (key.length === 1 && nameInput.length < 15) {
+            // Add character (limit to 15 characters)
+            nameInput += key;
+            return;
+        }
+    }
+    
     //When spacebar is pressed
-    if(key === ' ' && !gameOver){
+    if(key === ' ' && !gameOver && !enteringName){
         gameStarted = true;
         bird.velocity = -11; //Flap strength
     }
     
     // Restart game with R key
     if(key === 'r' || key === 'R') {
-        if(gameOver) {
+        if(gameOver && !enteringName) {
             // Reset everything
             gameOver = false;
             gameStarted = false;
@@ -161,7 +231,6 @@ function keyPressed() {
         }
     }
 }
-
 
 function checkCollisions() {
     // Check ground collision
